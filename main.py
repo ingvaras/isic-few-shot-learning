@@ -1,3 +1,6 @@
+import os
+
+import numpy as np
 from keras import Sequential
 from keras.applications import ResNet50
 from keras.layers import Dense, GlobalAveragePooling2D
@@ -24,9 +27,36 @@ training_dataset = (tf.keras.utils.image_dataset_from_directory('data/train' if 
 validation_dataset = (tf.keras.utils.image_dataset_from_directory('data/val' if CLASS_COUNT == 8 else 'data/val-excluded', image_size=(IMAGE_SIZE, IMAGE_SIZE), batch_size=BATCH_SIZE)
                       .map(lambda x, y: (x, tf.one_hot(y, depth=CLASS_COUNT))))
 
+def load_image(file_path):
+    img = tf.keras.utils.load_img(file_path, target_size=(IMAGE_SIZE, IMAGE_SIZE, 3))
+    img_array = tf.keras.utils.img_to_array(img)
+    img_array = np.expand_dims(img_array, axis=0)
+    return img_array
+
+
 if TEST:
     model.load_weights('models/{0}-classes.h5'.format(CLASS_COUNT))
-    model.evaluate(validation_dataset)
+    if CLASS_COUNT == 8:
+        true_positives = 0
+        false_positives = 0
+        false_negatives = 0
+        for category in ['SCC', 'AK', 'BCC', 'BKL', 'DF', 'MEL', 'NV', 'VASC']:
+            directory_path = os.path.join('data/val', category)
+            for filename in os.listdir(directory_path):
+                file_path = os.path.join(directory_path, filename)
+                probs = model.predict(load_image(file_path), verbose=0)
+                if category == 'SCC':
+                    true_positives += np.argmax(probs[0]) == 6
+                    false_negatives += np.argmax(probs[0]) != 6
+                else:
+                    false_positives += np.argmax(probs[0]) == 6
+
+        precision = true_positives / (true_positives + false_positives)
+        recall = true_positives / (true_positives + false_negatives)
+        f1_score = 2 * (precision * recall) / (precision + recall)
+        print('full-data F1 score: ' + str(f1_score))
+    else:
+        model.evaluate(validation_dataset)
 else:
     model.fit(training_dataset, validation_data=validation_dataset, epochs=TRAINING_EPOCHS)
     model.save('models/{0}-classes.h5'.format(CLASS_COUNT))

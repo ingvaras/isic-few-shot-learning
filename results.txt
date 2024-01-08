@@ -1,3 +1,4 @@
 random-guessing F1 score: 0.041
 zero-shot F1 score: 0.153
 one-shot F1 score: 0.044
+full-data F1 score: 0.265
