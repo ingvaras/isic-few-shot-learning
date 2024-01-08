@@ -3,6 +3,7 @@ import os
 import numpy as np
 import tensorflow as tf
 from keras.models import load_model, Model
+from sklearn.metrics.pairwise import cosine_similarity
 
 IMAGE_SIZE = 128
 BATCH_SIZE = 64
@@ -28,9 +29,6 @@ def collect_class_average(class_name):
     feature_samples = np.array(feature_samples)
     return np.average(feature_samples, axis=0).tolist()
 
-def similarity_function(x, y):
-    return np.sqrt(np.sum(np.power(x - y, 2), axis=1))
-
 if TEST:
     true_positives = 0
     false_positives = 0
@@ -42,7 +40,7 @@ if TEST:
             file_path = os.path.join(directory_path, filename)
             image = load_image(os.path.join(directory_path, filename))
             features = model_cut.predict(image, verbose=0)
-            similarities = similarity_function(features_averages, features)
+            similarities = cosine_similarity(features_averages, features)
             if category == 'SCC':
                 true_positives += np.argmax(similarities) == 0
                 false_negatives += np.argmax(similarities) != 0
