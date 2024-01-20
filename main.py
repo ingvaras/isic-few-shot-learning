@@ -6,6 +6,7 @@ from keras.applications import ResNet50
 from keras.layers import Dense, GlobalAveragePooling2D
 from keras.optimizers import Adam
 import tensorflow as tf
+from utils import accuracy, f1, balanced_accuracy
 
 IMAGE_SIZE = 128
 BATCH_SIZE = 64
@@ -13,6 +14,7 @@ TRAINING_EPOCHS = 10
 LEARNING_RATE = 0.001
 CLASS_COUNT = 8
 TEST = True
+
 
 model = Sequential([
     ResNet50(include_top = False, weights='imagenet', input_shape=(IMAGE_SIZE, IMAGE_SIZE, 3)),
@@ -40,21 +42,25 @@ if TEST:
         true_positives = 0
         false_positives = 0
         false_negatives = 0
+        true_negatives = 0
+        positives = 0
+        negatives = 0
         for category in ['SCC', 'AK', 'BCC', 'BKL', 'DF', 'MEL', 'NV', 'VASC']:
-            directory_path = os.path.join('data/val', category)
+            directory_path = os.path.join('data/test', category)
             for filename in os.listdir(directory_path):
                 file_path = os.path.join(directory_path, filename)
                 probs = model.predict(load_image(file_path), verbose=0)
                 if category == 'SCC':
+                    positives += 1
                     true_positives += np.argmax(probs[0]) == 6
                     false_negatives += np.argmax(probs[0]) != 6
                 else:
+                    negatives += 1
+                    true_negatives += np.argmax(probs[0]) != 6
                     false_positives += np.argmax(probs[0]) == 6
-
-        precision = true_positives / (true_positives + false_positives)
-        recall = true_positives / (true_positives + false_negatives)
-        f1_score = 2 * (precision * recall) / (precision + recall)
-        print('full-data F1 score: ' + str(f1_score))
+        print('full-data F1 score: ' + str(f1(true_positives, false_positives, false_negatives)))
+        print('full-data accuracy: ' + str(accuracy(true_positives, true_negatives, false_positives, false_negatives)))
+        print('full-data balanced accuracy: ' + str(balanced_accuracy(true_positives, true_negatives, positives, negatives)))
     else:
         model.evaluate(validation_dataset)
 else:

@@ -4,11 +4,13 @@ import numpy as np
 import tensorflow as tf
 from keras.models import load_model, Model
 from sklearn.metrics.pairwise import cosine_similarity
+from utils import accuracy, f1, balanced_accuracy
 
 IMAGE_SIZE = 128
 BATCH_SIZE = 64
 ONE_SHOT_BASE_SAMPLE_NAME = 'ISIC_0024329.jpg'
 TEST = True
+
 
 model = load_model('models/7-classes.h5')
 model_cut = Model(inputs=model.input, outputs=model.layers[-2].output)
@@ -33,23 +35,28 @@ if TEST:
     true_positives = 0
     false_positives = 0
     false_negatives = 0
+    true_negatives = 0
+    positives = 0
+    negatives = 0
     features_averages = np.load('models/high_level_features.npy')
     for category in ['SCC', 'AK', 'BCC', 'BKL', 'DF', 'MEL', 'NV', 'VASC']:
-        directory_path = os.path.join('data/val', category)
+        directory_path = os.path.join('data/test', category)
         for filename in os.listdir(directory_path):
             file_path = os.path.join(directory_path, filename)
             image = load_image(os.path.join(directory_path, filename))
             features = model_cut.predict(image, verbose=0)
             similarities = cosine_similarity(features_averages, features)
             if category == 'SCC':
+                positives += 1
                 true_positives += np.argmax(similarities) == 0
                 false_negatives += np.argmax(similarities) != 0
             else:
+                negatives += 1
                 false_positives += np.argmax(similarities) == 0
-    precision = true_positives / (true_positives + false_positives)
-    recall = true_positives / (true_positives + false_negatives)
-    f1_score = 2 * (precision * recall) / (precision + recall)
-    print('one-shot F1 score: ' + str(f1_score))
+                true_negatives += np.argmax(similarities) != 0
+    print('one-shot F1 score: ' + str(f1(true_positives, false_positives, false_negatives)))
+    print('one-shot accuracy: ' + str(accuracy(true_positives, true_negatives, false_positives, false_negatives)))
+    print('one-shot balanced accuracy: ' + str(balanced_accuracy(true_positives, true_negatives, positives, negatives)))
 else:
     features_averages = np.array([
         model_cut.predict(load_image('data/train/SCC/' + ONE_SHOT_BASE_SAMPLE_NAME), verbose=0)[0].tolist(),
