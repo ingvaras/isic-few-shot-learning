@@ -1,19 +1,14 @@
 random-guessing F1 score: 0.042
 random-guessing accuracy: 0.856
-random-guessing balanced accuracy: 0.5
 
 zero-shot F1 score: 0.153
 zero-shot accuracy: 0.956
-zero-shot balanced accuracy: 0.569
 
 one-shot F1 score: 0.082
 one-shot accuracy: 0.894
-one-shot balanced accuracy: 0.55
 
-few-shot F1 score: 0.1
-few-shot accuracy: 0.772
-few-shot balanced accuracy: 0.647
+few-shot F1 score: 0.127
+few-shot accuracy: 0.920
 
 full-data F1 score: 0.277
 full-data accuracy: 0.973
-full-data balanced accuracy: 0.598

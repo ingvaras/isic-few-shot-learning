@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 from keras.models import load_model, Model
 from sklearn.metrics.pairwise import cosine_similarity
-from utils import accuracy, f1, balanced_accuracy
+from utils import accuracy, f1
 
 IMAGE_SIZE = 128
 BATCH_SIZE = 64
@@ -36,8 +36,6 @@ if TEST:
     false_positives = 0
     false_negatives = 0
     true_negatives = 0
-    positives = 0
-    negatives = 0
     features_averages = np.load('models/high_level_features.npy')
     for category in ['SCC', 'AK', 'BCC', 'BKL', 'DF', 'MEL', 'NV', 'VASC']:
         directory_path = os.path.join('data/test', category)
@@ -56,7 +54,6 @@ if TEST:
                 true_negatives += np.argmax(similarities) != 0
     print('one-shot F1 score: ' + str(f1(true_positives, false_positives, false_negatives)))
     print('one-shot accuracy: ' + str(accuracy(true_positives, true_negatives, false_positives, false_negatives)))
-    print('one-shot balanced accuracy: ' + str(balanced_accuracy(true_positives, true_negatives, positives, negatives)))
 else:
     features_averages = np.array([
         model_cut.predict(load_image('data/train/SCC/' + ONE_SHOT_BASE_SAMPLE_NAME), verbose=0)[0].tolist(),

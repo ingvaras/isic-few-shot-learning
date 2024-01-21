@@ -3,7 +3,7 @@ import os
 import numpy as np
 import tensorflow as tf
 from sklearn.neighbors import KernelDensity
-from utils import accuracy, f1, balanced_accuracy
+from utils import accuracy, f1
 
 IMAGE_SIZE = 128
 SHOTS = 2
@@ -36,8 +36,6 @@ true_positives = 0
 false_positives = 0
 false_negatives = 0
 true_negatives = 0
-positives = 0
-negatives = 0
 for category in CLASSES:
     directory_path = os.path.join('data/val', category)
     for filename in os.listdir(directory_path):
@@ -45,13 +43,10 @@ for category in CLASSES:
         image = load_image(os.path.join(directory_path, filename))
         pred = predict(image)
         if category == 'SCC':
-            positives += 1
             true_positives += pred == 0
             false_negatives += pred != 0
         else:
-            negatives += 1
             false_positives += pred == 0
             true_negatives += pred != 0
 print('few-shot F1 score: ' + str(f1(true_positives, false_positives, false_negatives)))
 print('few-shot accuracy: ' + str(accuracy(true_positives, true_negatives, false_positives, false_negatives)))
-print('few-shot balanced accuracy: ' + str(balanced_accuracy(true_positives, true_negatives, positives, negatives)))

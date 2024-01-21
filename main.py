@@ -6,7 +6,7 @@ from keras.applications import ResNet50
 from keras.layers import Dense, GlobalAveragePooling2D
 from keras.optimizers import Adam
 import tensorflow as tf
-from utils import accuracy, f1, balanced_accuracy
+from utils import accuracy, f1
 
 IMAGE_SIZE = 128
 BATCH_SIZE = 64
@@ -43,24 +43,19 @@ if TEST:
         false_positives = 0
         false_negatives = 0
         true_negatives = 0
-        positives = 0
-        negatives = 0
         for category in ['SCC', 'AK', 'BCC', 'BKL', 'DF', 'MEL', 'NV', 'VASC']:
             directory_path = os.path.join('data/test', category)
             for filename in os.listdir(directory_path):
                 file_path = os.path.join(directory_path, filename)
                 probs = model.predict(load_image(file_path), verbose=0)
                 if category == 'SCC':
-                    positives += 1
                     true_positives += np.argmax(probs[0]) == 6
                     false_negatives += np.argmax(probs[0]) != 6
                 else:
-                    negatives += 1
                     true_negatives += np.argmax(probs[0]) != 6
                     false_positives += np.argmax(probs[0]) == 6
         print('full-data F1 score: ' + str(f1(true_positives, false_positives, false_negatives)))
         print('full-data accuracy: ' + str(accuracy(true_positives, true_negatives, false_positives, false_negatives)))
-        print('full-data balanced accuracy: ' + str(balanced_accuracy(true_positives, true_negatives, positives, negatives)))
     else:
         model.evaluate(validation_dataset)
 else:
